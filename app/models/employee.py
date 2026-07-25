@@ -1,4 +1,3 @@
-
 from app.models import db
 
 class Employee(db.Model):
@@ -22,7 +21,7 @@ class Employee(db.Model):
     )
 
     password = db.Column(
-        db.String(50),
+        db.String(255),
         nullable=False
     )
 

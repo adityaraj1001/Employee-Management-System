@@ -1,40 +1,226 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %}
 
-<div class="card">
-  <div class="card-header">
-    <h3>Update Employee</h3>
-  </div>
+{% block title %}Update Employee - EMS{% endblock %}
 
-  <div class="card-body">
-    <form action="/employee/employeeUpdate/{{employee.id}}" method="POST">
-        <div class="mb-3">
-            <label>Name : </label>
-            <input type="text" name="name" value="{{employee.name}}" class="form-control px-4" required>
+{% block content %}
+
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/employee/list">Employees</a></li>
+    <li class="breadcrumb-item"><a href="/employee/employeeDetail/{{ employee.id }}">{{ employee.name }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Update</li>
+  </ol>
+</nav>
+
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+
+    <div class="card shadow-sm border-0">
+      <div class="card-header bg-warning bg-gradient d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+          <i class="bi bi-pencil-square fs-4 me-2"></i>
+          <h3 class="mb-0">Update Employee</h3>
         </div>
+        <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center fw-bold avatar-circle"
+             style="width: 42px; height: 42px;" id="livePreviewAvatar">{{ employee.name[0]|upper }}</div>
+      </div>
 
-        <div class="mb-3">
-            <label>Email : </label>
-            <input type="email" name="email" value="{{employee.email}}" class="form-control px-4" required>
-        </div>
+      <div class="card-body p-4">
+        <form action="/employee/employeeUpdate/{{ employee.id }}" method="POST" class="needs-validation" novalidate>
 
-        <div class="mb-3">
-            <label>Password : </label>
-            <input type="text" name="password" value="{{employee.password}}" class="form-control px-4" required>
-        </div>
+          <div class="row g-3">
 
-        <div class="mb-3">
-            <label>Salary : </label>
-            <input type="text" name="salary" value="{{employee.salary}}" class="form-control px-4" required>
-        </div>
-        <div class="mb-3">
-            <label>Department : </label>
-            <input type="text" name="department" value="{{employee.department}}" class="form-control px-4" required>
-        </div>
+            <div class="col-md-6">
+              <label for="name" class="form-label fw-semibold">Full Name</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                <input type="text" id="name" name="name" class="form-control"
+                       value="{{ employee.name }}" pattern="[A-Za-z\s]{3,50}" required>
+                <div class="invalid-feedback">Please enter a valid name.</div>
+              </div>
+            </div>
 
-        <button class="btn btn-warning"> Update </button>
-        <button class="btn btn-primary"> Reset </button>
-    </form>
+            <div class="col-md-6">
+              <label for="email" class="form-label fw-semibold">Email Address</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                <input type="email" id="email" name="email" class="form-control"
+                       value="{{ employee.email }}" required>
+                <div class="invalid-feedback">Please enter a valid email.</div>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="password" class="form-label fw-semibold">Password</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                <input type="password" id="password" name="password" class="form-control"
+                       placeholder="Leave blank to keep current password" minlength="6" autocomplete="new-password">
+                <button class="btn btn-outline-secondary" type="button" id="togglePassword" tabindex="-1">
+                  <i class="bi bi-eye" id="toggleIcon"></i>
+                </button>
+              </div>
+              <div class="progress mt-2" style="height: 5px;">
+                <div class="progress-bar" id="strengthBar" style="width: 0%;"></div>
+              </div>
+              <div class="form-text" id="strengthText">Leave blank if you don't want to change it.</div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="salary" class="form-label fw-semibold">Salary</label>
+              <div class="input-group">
+                <span class="input-group-text">₹</span>
+                <input type="number" id="salary" name="salary" class="form-control"
+                       value="{{ employee.salary }}" min="0" step="0.01" required>
+                <div class="invalid-feedback">Please enter a valid salary.</div>
+              </div>
+              <div class="form-text font-mono" id="salaryPreview">₹{{ "{:,.2f}".format(employee.salary) }} / year</div>
+            </div>
+
+            <div class="col-md-12">
+              <label for="department" class="form-label fw-semibold">Department</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-building"></i></span>
+                <select id="department" name="department" class="form-select" required>
+                  <option value="" disabled>Select a department</option>
+                  {% for dept in ['Engineering', 'Human Resources', 'Sales', 'Marketing', 'Finance', 'Operations', 'Other'] %}
+                  <option value="{{ dept }}" {% if employee.department == dept %}selected{% endif %}>{{ dept }}</option>
+                  {% endfor %}
+                </select>
+                <div class="invalid-feedback">Please select a department.</div>
+              </div>
+            </div>
+
+          </div>
+
+          <hr class="my-4">
+
+          <div class="card border-0 bg-secondary-subtle mb-4">
+            <div class="card-body d-flex align-items-center justify-content-between flex-wrap gap-2">
+              <div class="d-flex align-items-center">
+                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold me-3 avatar-circle"
+                     style="width: 44px; height: 44px;" id="previewInitial">{{ employee.name[0]|upper }}</div>
+                <div>
+                  <div class="fw-semibold" id="previewName">{{ employee.name }}</div>
+                  <small class="text-muted" id="previewEmail">{{ employee.email }}</small>
+                </div>
+              </div>
+              <span class="badge bg-primary-subtle text-primary" id="previewDept">{{ employee.department }}</span>
+              <span class="badge bg-success-subtle font-mono" id="previewSalary">₹{{ "{:,.2f}".format(employee.salary) }}</span>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between">
+            <a href="/employee/employeeDetail/{{ employee.id }}" class="btn btn-outline-secondary px-4">
+              <i class="bi bi-arrow-left me-1"></i>Cancel
+            </a>
+            <div class="d-flex gap-2">
+              <button type="reset" class="btn btn-outline-secondary px-4">
+                <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+              </button>
+              <button type="submit" class="btn btn-warning px-4">
+                <i class="bi bi-check-circle me-1"></i>Update
+              </button>
+            </div>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
   </div>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+const nameInput = document.getElementById('name');
+const emailInput = document.getElementById('email');
+const salaryInput = document.getElementById('salary');
+const departmentInput = document.getElementById('department');
+const passwordInput = document.getElementById('password');
+
+const previewInitial = document.getElementById('previewInitial');
+const livePreviewAvatar = document.getElementById('livePreviewAvatar');
+const previewName = document.getElementById('previewName');
+const previewEmail = document.getElementById('previewEmail');
+const previewDept = document.getElementById('previewDept');
+const previewSalary = document.getElementById('previewSalary');
+const salaryPreview = document.getElementById('salaryPreview');
+const strengthBar = document.getElementById('strengthBar');
+const strengthText = document.getElementById('strengthText');
+
+function updatePreview() {
+    const name = nameInput.value.trim();
+    const initial = name ? name[0].toUpperCase() : '?';
+    previewInitial.textContent = initial;
+    livePreviewAvatar.textContent = initial;
+    previewName.textContent = name || 'Unnamed Employee';
+    previewEmail.textContent = emailInput.value.trim() || 'no email yet';
+    previewDept.textContent = departmentInput.value || 'No department';
+
+    const salary = parseFloat(salaryInput.value) || 0;
+    const formatted = '₹' + salary.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    previewSalary.textContent = formatted;
+    salaryPreview.textContent = formatted + ' / year';
+}
+
+[nameInput, emailInput, salaryInput, departmentInput].forEach(function (el) {
+    el.addEventListener('input', updatePreview);
+    el.addEventListener('change', updatePreview);
+});
+
+passwordInput.addEventListener('input', function () {
+    const value = passwordInput.value;
+
+    if (!value) {
+        strengthBar.style.width = '0%';
+        strengthText.textContent = "Leave blank if you don't want to change it.";
+        return;
+    }
+
+    let score = 0;
+    if (value.length >= 6) score += 25;
+    if (value.length >= 10) score += 25;
+    if (/[A-Z]/.test(value)) score += 25;
+    if (/[0-9]/.test(value) && /[^A-Za-z0-9]/.test(value)) score += 25;
+
+    strengthBar.style.width = score + '%';
+
+    if (score <= 25) {
+        strengthBar.style.background = '#F0625E';
+        strengthText.textContent = 'Weak password';
+    } else if (score <= 50) {
+        strengthBar.style.background = '#D6A85C';
+        strengthText.textContent = 'Fair password';
+    } else if (score <= 75) {
+        strengthBar.style.background = '#5B9DF9';
+        strengthText.textContent = 'Good password';
+    } else {
+        strengthBar.style.background = '#3FBE7A';
+        strengthText.textContent = 'Strong password';
+    }
+});
+
+const togglePassword = document.getElementById('togglePassword');
+const toggleIcon = document.getElementById('toggleIcon');
+
+togglePassword.addEventListener('click', function () {
+    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+    passwordInput.setAttribute('type', type);
+    toggleIcon.classList.toggle('bi-eye');
+    toggleIcon.classList.toggle('bi-eye-slash');
+});
+
+document.querySelectorAll('.needs-validation').forEach(function (form) {
+    form.addEventListener('submit', function (event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    }, false);
+});
+</script>
 {% endblock %}

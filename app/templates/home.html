@@ -1,27 +1,426 @@
 {% extends "base.html" %}
 
-{% block content %}
-<h2 class="mb-2 mx-4">Dashboard</h2>
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card mx-3 my-3" style="width: 18rem;">
-                <div class="card-body">
-                    <h5 class="card-title ">Total Employees</h5>
-                    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                    <a href="/employee/list" class="btn btn-primary">Check</a>
-                </div>
-            </div>
-        </div>
+{% block title %}Dashboard - EMS{% endblock %}
 
-        <div class="col-md-4">
-            <div class="card mx-3 my-3" style="width: 18rem;">
-                <div class="card-body">
-                    <h5 class="card-title ">Departments</h5>
-                    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                    <a href="/employee/list" class="btn btn-primary">Check</a>
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">
+            <i class="bi bi-speedometer2 me-2 text-primary"></i>Dashboard
+            <span class="live-dot ms-2" title="Live"></span>
+        </h2>
+        <p class="text-muted mb-0" id="greetingText">Welcome back, here's what's happening in your organization.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+        <span class="badge bg-secondary-subtle border px-3 py-2" id="syncBadge">
+            <i class="bi bi-arrow-repeat me-1"></i>Synced <span id="syncAgo">just now</span>
+        </span>
+        <span class="badge bg-secondary-subtle border px-3 py-2" id="clockBadge">
+            <i class="bi bi-clock me-1"></i><span id="liveClock"></span>
+        </span>
+        <button class="btn btn-sm btn-outline-primary" id="refreshBtn" title="Refresh dashboard">
+            <i class="bi bi-arrow-clockwise"></i>
+        </button>
+        <div class="dropdown">
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-download me-1"></i>Export
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="/employee/export"><i class="bi bi-file-earmark-spreadsheet me-2"></i>CSV Report</a></li>
+                <li><a class="dropdown-item" href="#" id="printBtn"><i class="bi bi-printer me-2"></i>Print Dashboard</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm h-100 card-lift">
+            <div class="card-body d-flex align-items-center">
+                <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-3 me-3">
+                    <i class="bi bi-people-fill fs-3"></i>
+                </div>
+                <div>
+                    <h3 class="mb-0 fw-bold stat-value" data-count="{{ total_employees if total_employees else 0 }}">0</h3>
+                    <small class="text-muted">Total Employees</small>
                 </div>
             </div>
         </div>
     </div>
 
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm h-100 card-lift">
+            <div class="card-body d-flex align-items-center">
+                <div class="bg-success bg-opacity-10 text-success rounded-3 p-3 me-3">
+                    <i class="bi bi-building-fill fs-3"></i>
+                </div>
+                <div>
+                    <h3 class="mb-0 fw-bold stat-value" data-count="{{ total_departments if total_departments else 0 }}">0</h3>
+                    <small class="text-muted">Departments</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm h-100 card-lift">
+            <div class="card-body d-flex align-items-center">
+                <div class="bg-warning bg-opacity-10 text-warning rounded-3 p-3 me-3">
+                    <i class="bi bi-cash-stack fs-3"></i>
+                </div>
+                <div>
+                    <h3 class="mb-0 fw-bold font-mono">
+                        ₹<span class="stat-value" data-count="{{ total_payroll|round(0)|int if total_payroll else 0 }}">0</span>
+                    </h3>
+                    <small class="text-muted">Monthly Payroll</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm h-100 card-lift">
+            <div class="card-body d-flex align-items-center">
+                <div class="bg-info bg-opacity-10 text-info rounded-3 p-3 me-3">
+                    <i class="bi bi-person-plus-fill fs-3"></i>
+                </div>
+                <div>
+                    <h3 class="mb-0 fw-bold stat-value" data-count="{{ new_hires if new_hires else 0 }}">0</h3>
+                    <small class="text-muted">New Hires (30d)</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="row g-4 mb-4">
+
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <h5 class="mb-0"><i class="bi bi-bar-chart-fill me-2 text-primary"></i>Employees by Department</h5>
+                <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-outline-secondary active" data-chart-type="bar">Bar</button>
+                    <button type="button" class="btn btn-outline-secondary" data-chart-type="line">Trend</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="deptChart" height="200"></canvas>
+                <div class="mt-3" id="deptBars"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0"><i class="bi bi-pie-chart-fill me-2 text-primary"></i>Salary Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="salaryChart" height="180"></canvas>
+                <div class="mt-3" id="salaryLegend"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="row g-4">
+
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <h5 class="mb-0"><i class="bi bi-trophy-fill me-2 text-warning"></i>Top Earners</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                {% if top_earners %}
+                {% for emp in top_earners %}
+                <div class="list-group-item d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <span class="badge rounded-circle bg-warning-subtle text-warning fw-bold me-3 d-flex align-items-center justify-content-center"
+                              style="width: 28px; height: 28px;">{{ loop.index }}</span>
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold me-3 avatar-circle"
+                             style="width: 36px; height: 36px; flex-shrink: 0;">
+                            {{ emp.name[0]|upper }}
+                        </div>
+                        <div>
+                            <div class="fw-semibold">{{ emp.name }}</div>
+                            <small class="text-muted">{{ emp.department }}</small>
+                        </div>
+                    </div>
+                    <span class="badge bg-success-subtle text-success font-mono">₹{{ "{:,.0f}".format(emp.salary) }}</span>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="list-group-item text-center text-muted py-4">
+                    <i class="bi bi-trophy fs-3 d-block mb-2"></i>
+                    No salary data to rank yet
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>Recently Added Employees</h5>
+            </div>
+            <div class="p-3 pb-0">
+                <input type="text" id="recentSearch" class="form-control form-control-sm" placeholder="Filter by name or department...">
+            </div>
+            <div class="list-group list-group-flush" id="recentList">
+                {% if recent_employees %}
+                {% for emp in recent_employees %}
+                <a href="/employee/employeeDetail/{{ emp.id }}" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold me-3 avatar-circle"
+                             style="width: 38px; height: 38px; flex-shrink: 0;">
+                            {{ emp.name[0]|upper }}
+                        </div>
+                        <div>
+                            <div class="fw-semibold">{{ emp.name }}</div>
+                            <small class="text-muted">{{ emp.department }}</small>
+                        </div>
+                    </div>
+                    <span class="badge bg-primary-subtle text-primary font-mono">₹{{ "{:,.0f}".format(emp.salary) }}</span>
+                </a>
+                {% endfor %}
+                {% else %}
+                <div class="list-group-item text-center text-muted py-4">
+                    <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                    No recent employees to show
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0"><i class="bi bi-lightning-fill me-2 text-primary"></i>Quick Actions</h5>
+            </div>
+            <div class="card-body d-grid gap-2">
+                <a href="/employee/add" class="btn btn-outline-primary text-start">
+                    <i class="bi bi-person-plus-fill me-2"></i>Add Employee
+                </a>
+                <a href="/department" class="btn btn-outline-success text-start">
+                    <i class="bi bi-building-add me-2"></i>Add Department
+                </a>
+                <a href="/employee/list" class="btn btn-outline-secondary text-start">
+                    <i class="bi bi-search me-2"></i>Search Employees
+                </a>
+                <a href="/employee/export" class="btn btn-outline-warning text-start">
+                    <i class="bi bi-download me-2"></i>Export Report
+                </a>
+                <button class="btn btn-outline-info text-start" id="printBtn2">
+                    <i class="bi bi-printer me-2"></i>Print Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1080;">
+    <div id="syncToast" class="toast align-items-center border-0" role="alert">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bi bi-check-circle-fill text-success me-2"></i>Dashboard synced successfully
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+const deptLabels = {{ dept_labels|tojson if dept_labels else '[]' }};
+const deptCounts = {{ dept_counts|tojson if dept_counts else '[]' }};
+const salaryBuckets = {{ salary_buckets|tojson if salary_buckets else '[0,0,0,0]' }};
+
+function animateCounters() {
+    document.querySelectorAll('.stat-value').forEach(function (el) {
+        const target = parseInt(el.getAttribute('data-count'), 10) || 0;
+        const duration = 900;
+        const start = performance.now();
+        function tick(now) {
+            const progress = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            el.textContent = Math.round(eased * target).toLocaleString();
+            if (progress < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+    });
+}
+animateCounters();
+
+function updateClock() {
+    const now = new Date();
+    document.getElementById('liveClock').textContent = now.toLocaleTimeString();
+    const hour = now.getHours();
+    const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+    document.getElementById('greetingText').textContent = greeting + ', here\'s what\'s happening in your organization.';
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+let lastSyncTime = Date.now();
+function updateSyncAgo() {
+    const seconds = Math.floor((Date.now() - lastSyncTime) / 1000);
+    const label = seconds < 5 ? 'just now' : seconds < 60 ? seconds + 's ago' : Math.floor(seconds / 60) + 'm ago';
+    document.getElementById('syncAgo').textContent = label;
+}
+setInterval(updateSyncAgo, 1000);
+
+document.getElementById('refreshBtn').addEventListener('click', function () {
+    const icon = this.querySelector('i');
+    icon.classList.add('spin-once');
+    lastSyncTime = Date.now();
+    updateSyncAgo();
+    const toastEl = document.getElementById('syncToast');
+    if (window.bootstrap) {
+        new bootstrap.Toast(toastEl).show();
+    }
+    setTimeout(function () { icon.classList.remove('spin-once'); }, 700);
+});
+
+function printDashboard() { window.print(); }
+document.getElementById('printBtn').addEventListener('click', function (e) { e.preventDefault(); printDashboard(); });
+document.getElementById('printBtn2').addEventListener('click', printDashboard);
+
+document.getElementById('recentSearch').addEventListener('input', function () {
+    const query = this.value.toLowerCase();
+    document.querySelectorAll('#recentList .list-group-item').forEach(function (item) {
+        item.style.display = item.textContent.toLowerCase().includes(query) ? '' : 'none';
+    });
+});
+
+Chart.defaults.color = '#8993A6';
+Chart.defaults.font.family = 'Inter';
+
+let deptChartInstance = new Chart(document.getElementById('deptChart'), {
+    type: 'bar',
+    data: {
+        labels: deptLabels,
+        datasets: [{
+            label: 'Employees',
+            data: deptCounts,
+            backgroundColor: '#D6A85C',
+            hoverBackgroundColor: '#E7BC72',
+            borderRadius: 6,
+            maxBarThickness: 42,
+            tension: 0.35,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        animation: { duration: 900, easing: 'easeOutCubic' },
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: '#1B212D',
+                borderColor: '#262D3B',
+                borderWidth: 1,
+                titleColor: '#E7ECF3',
+                bodyColor: '#E7ECF3',
+                padding: 10,
+                cornerRadius: 8
+            }
+        },
+        scales: {
+            y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#1E2430' } },
+            x: { grid: { display: false } }
+        }
+    }
+});
+
+document.querySelectorAll('[data-chart-type]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        document.querySelectorAll('[data-chart-type]').forEach(function (b) { b.classList.remove('active'); });
+        this.classList.add('active');
+        const type = this.getAttribute('data-chart-type');
+        deptChartInstance.config.type = type;
+        deptChartInstance.data.datasets[0].backgroundColor = type === 'line' ? 'rgba(214,168,92,0.15)' : '#D6A85C';
+        deptChartInstance.data.datasets[0].borderColor = '#D6A85C';
+        deptChartInstance.data.datasets[0].borderWidth = type === 'line' ? 3 : 0;
+        deptChartInstance.data.datasets[0].pointBackgroundColor = '#D6A85C';
+        deptChartInstance.update();
+    });
+});
+
+const totalDeptCount = deptCounts.reduce(function (a, b) { return a + b; }, 0) || 1;
+const barsHtml = deptLabels.map(function (label, i) {
+    const count = deptCounts[i] || 0;
+    const pct = Math.round((count / totalDeptCount) * 100);
+    return '<div class="d-flex justify-content-between small mb-1"><span>' + label + '</span><span class="text-muted font-mono">' + count + ' (' + pct + '%)</span></div>' +
+           '<div class="progress mb-3"><div class="progress-bar" style="width:' + pct + '%"></div></div>';
+}).join('');
+document.getElementById('deptBars').innerHTML = barsHtml;
+
+const salaryLabels = ['0-30k', '30k-60k', '60k-100k', '100k+'];
+const salaryColors = ['#5B9DF9', '#3FBE7A', '#D6A85C', '#F0625E'];
+
+new Chart(document.getElementById('salaryChart'), {
+    type: 'doughnut',
+    data: {
+        labels: salaryLabels,
+        datasets: [{
+            data: salaryBuckets,
+            backgroundColor: salaryColors,
+            borderColor: '#131822',
+            borderWidth: 3,
+            hoverOffset: 8
+        }]
+    },
+    options: {
+        responsive: true,
+        animation: { duration: 900, easing: 'easeOutCubic' },
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: '#1B212D',
+                borderColor: '#262D3B',
+                borderWidth: 1,
+                titleColor: '#E7ECF3',
+                bodyColor: '#E7ECF3',
+                padding: 10,
+                cornerRadius: 8
+            }
+        }
+    }
+});
+
+const totalSalaryCount = salaryBuckets.reduce(function (a, b) { return a + b; }, 0) || 1;
+const legendHtml = salaryLabels.map(function (label, i) {
+    const count = salaryBuckets[i] || 0;
+    const pct = Math.round((count / totalSalaryCount) * 100);
+    return '<div class="d-flex align-items-center justify-content-between small mb-2">' +
+           '<span><span class="d-inline-block rounded-circle me-2" style="width:10px;height:10px;background:' + salaryColors[i] + '"></span>' + label + '</span>' +
+           '<span class="text-muted font-mono">' + count + ' (' + pct + '%)</span></div>';
+}).join('');
+document.getElementById('salaryLegend').innerHTML = legendHtml;
+
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'p' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        printDashboard();
+    }
+});
+</script>
+<style>
+.spin-once { animation: spinOnce 0.6s linear; }
+@keyframes spinOnce { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@media print {
+    .btn, .dropdown, #refreshBtn, #recentSearch, .navbar, nav { display: none !important; }
+}
+</style>
 {% endblock %}

@@ -1,46 +1,243 @@
-{% extends "base.html" %} {% block content %}
-<!-- <table border="1">
-        <tr>
-            <th>Name</th>
-            <th>Salary</th>
-        </tr>
+{% extends "base.html" %}
 
+{% block title %}Employees - EMS{% endblock %}
+
+{% block content %}
+
+<div class="card shadow-lg border-0">
+
+    <div class="card-header bg-primary bg-gradient text-white">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h3 class="mb-0"><i class="bi bi-people-fill me-2"></i>Employee Management</h3>
+            <div class="d-flex gap-2">
+                <a href="/employee/export" class="btn btn-light btn-sm">
+                    <i class="bi bi-download me-1"></i>Export
+                </a>
+                <a href="/employee/add" class="btn btn-light btn-sm">
+                    <i class="bi bi-person-plus-fill me-1"></i>Add Employee
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-body">
+
+        <form method="GET" action="/employee/list" id="filterForm">
+
+            <div class="row g-3 align-items-end">
+
+                <div class="col-md-3">
+                    <label class="form-label small text-muted mb-1">Search</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" placeholder="Name / Email / Department"
+                               name="search" value="{{ search }}">
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label small text-muted mb-1">Department</label>
+                    <select class="form-select" name="department">
+                        <option value="">All Departments</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept[0] }}" {% if department==dept[0] %}selected{% endif %}>
+                            {{ dept[0] }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label small text-muted mb-1">Min Salary</label>
+                    <input type="number" class="form-control font-mono" placeholder="0" name="min_salary" value="{{ min_salary }}">
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label small text-muted mb-1">Max Salary</label>
+                    <input type="number" class="form-control font-mono" placeholder="Any" name="max_salary" value="{{ max_salary }}">
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label small text-muted mb-1">Sort By</label>
+                    <select class="form-select" name="sort_by">
+                        <option value="id" {% if sort_by=="id" %}selected{% endif %}>ID</option>
+                        <option value="name" {% if sort_by=="name" %}selected{% endif %}>Name</option>
+                        <option value="email" {% if sort_by=="email" %}selected{% endif %}>Email</option>
+                        <option value="department" {% if sort_by=="department" %}selected{% endif %}>Department</option>
+                        <option value="salary" {% if sort_by=="salary" %}selected{% endif %}>Salary</option>
+                    </select>
+                </div>
+
+                <div class="col-md-1">
+                    <label class="form-label small text-muted mb-1">Order</label>
+                    <select class="form-select" name="order">
+                        <option value="asc" {% if order=="asc" %}selected{% endif %}>↑ Asc</option>
+                        <option value="desc" {% if order=="desc" %}selected{% endif %}>↓ Desc</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="mt-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <button class="btn btn-primary">
+                        <i class="bi bi-funnel-fill me-1"></i>Apply Filters
+                    </button>
+                    <a href="/employee/list" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle me-1"></i>Reset
+                    </a>
+                </div>
+
+                {% if search or department or min_salary or max_salary %}
+                <div class="d-flex gap-2 flex-wrap">
+                    {% if search %}<span class="badge bg-secondary-subtle border">Search: {{ search }}</span>{% endif %}
+                    {% if department %}<span class="badge bg-secondary-subtle border">Dept: {{ department }}</span>{% endif %}
+                    {% if min_salary %}<span class="badge bg-secondary-subtle border font-mono">Min: {{ min_salary }}</span>{% endif %}
+                    {% if max_salary %}<span class="badge bg-secondary-subtle border font-mono">Max: {{ max_salary }}</span>{% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+        </form>
+
+        <hr>
+
+        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+            <h5 class="mb-0">
+                Total Employees :
+                <span class="badge bg-success font-mono">{{ total }}</span>
+            </h5>
+            <small class="text-muted">
+                Showing page {{ pagination.page }} of {{ pagination.pages }}
+            </small>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+
+                <thead class="table-dark">
+                    <tr>
+                        <th>Employee</th>
+                        <th>Department</th>
+                        <th>Salary</th>
+                        <th>Email</th>
+                        <th width="220" class="text-center">Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% if employees %}
+                    {% for emp in employees %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold me-2 avatar-circle"
+                                     style="width: 36px; height: 36px; font-size: 0.9rem; flex-shrink: 0;">
+                                    {{ emp.name[0]|upper }}
+                                </div>
+                                <span class="fw-semibold">{{ emp.name }}</span>
+                            </div>
+                        </td>
+                        <td><span class="badge bg-primary-subtle text-primary">{{ emp.department }}</span></td>
+                        <td class="fw-semibold text-success font-mono">₹{{ "{:,.2f}".format(emp.salary) }}</td>
+                        <td class="text-muted">{{ emp.email }}</td>
+                        <td class="text-center">
+                            <a href="/employee/employeeDetail/{{ emp.id }}" class="btn btn-outline-success btn-sm" title="View Details">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="/employee/employeeUpdate/{{ emp.id }}" class="btn btn-outline-warning btn-sm" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <button type="button" class="btn btn-outline-danger btn-sm" title="Delete"
+                                    data-bs-toggle="modal" data-bs-target="#deleteModal{{ emp.id }}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-5">
+                            <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                            No Employee Found
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+
+            </table>
+        </div>
+
+        {% if employees %}
         {% for emp in employees %}
-        <tr>
-            <td>{{ emp.name|upper }}</td>
-            <td>{{ emp.salary }}</td>
-        </tr>
+        <div class="modal fade" id="deleteModal{{ emp.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Confirm Deletion</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body d-flex align-items-center">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold me-3"
+                             style="width: 40px; height: 40px; flex-shrink: 0;">
+                            {{ emp.name[0]|upper }}
+                        </div>
+                        <div>
+                            Are you sure you want to delete <strong>{{ emp.name }}</strong>?
+                            <div class="text-muted small">This action cannot be undone.</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <a href="/employee/employeeDelete/{{ emp.id }}" class="btn btn-danger">
+                            <i class="bi bi-trash me-1"></i>Delete
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
         {% endfor %}
-    </table> -->
+        {% endif %}
 
-<a href="/employee/add" class="btn btn-primary mx-3 my-3">Add Employee</a>
+        <nav class="mt-3">
+            <ul class="pagination justify-content-center">
 
-<table class="table table-hover mx-auto table-bordered">
-  <thead class="table-dark">
-    <tr>
-      <th scope="col">Name</th>
-      <th scope="col">Department</th>
-      <th scope="col">Salary</th>
-      <th scope="col">Email</th>
-      <th scope="col">Action</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for emp in employees %}
-    <tr>
-      <td>{{emp.name}}</td>
-      <td>{{emp.department}}</td>
-      <td>{{emp.salary}}</td>
-      <td>{{emp.email}}</td>
+                {% if pagination.has_prev %}
+                <li class="page-item">
+                    <a class="page-link"
+                       href="{{ url_for('employee.employee_list', page=pagination.prev_num, search=search, department=department, min_salary=min_salary, max_salary=max_salary, sort_by=sort_by, order=order) }}">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+                {% endif %}
 
-      <td>
-        <a href="/employee/employeeDetail/{{emp.id}}" class="btn btn-success"> Detail </a>
-        <a href="/employee/employeeUpdate/{{emp.id}}" class="btn btn-warning"> Edit </a>
-        <a href="/employee/employeeDelete/{{emp.id}}" class="btn btn-danger"> Delete </a>
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+                {% for p in pagination.iter_pages() %}
+                    {% if p %}
+                    <li class="page-item {% if p==pagination.page %}active{% endif %}">
+                        <a class="page-link"
+                           href="{{ url_for('employee.employee_list', page=p, search=search, department=department, min_salary=min_salary, max_salary=max_salary, sort_by=sort_by, order=order) }}">
+                            {{ p }}
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if pagination.has_next %}
+                <li class="page-item">
+                    <a class="page-link"
+                       href="{{ url_for('employee.employee_list', page=pagination.next_num, search=search, department=department, min_salary=min_salary, max_salary=max_salary, sort_by=sort_by, order=order) }}">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+
+            </ul>
+        </nav>
+
+    </div>
+
+</div>
 
 {% endblock %}
