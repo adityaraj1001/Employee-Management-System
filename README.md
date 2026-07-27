@@ -1,115 +1,149 @@
-# Flask Development 🚀
+# 🚀 Employee Management System
 
-A beginner-friendly Flask development repository containing step-by-step examples for learning Flask, Jinja2 templates, Static Files, SQLAlchemy, Blueprints, Authentication, CRUD operations, File Uploads, and more.
+<p align="center">
 
-This repository is designed for students and developers who want to master Flask from scratch and build production-ready web applications.
+![Python](https://img.shields.io/badge/Python-3.11+-blue?style=for-the-badge&logo=python)
+![Flask](https://img.shields.io/badge/Flask-3.x-black?style=for-the-badge&logo=flask)
+![MySQL](https://img.shields.io/badge/MySQL-8.0-orange?style=for-the-badge&logo=mysql)
+![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-ORM-red?style=for-the-badge)
+![Bootstrap](https://img.shields.io/badge/Bootstrap-5-purple?style=for-the-badge&logo=bootstrap)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+
+</p>
+
+<p align="center">
+An advanced Employee Management System developed using <b>Flask, MySQL, SQLAlchemy, and Bootstrap 5</b> with modern UI, dashboard analytics, pagination, searching, sorting, filtering, and complete CRUD operations.
+</p>
 
 ---
 
-## 📁 Project Structure
+# 📌 Features
+
+## 👨‍💼 Employee Management
+
+- ✅ Add Employee
+- ✅ Update Employee
+- ✅ Delete Employee
+- ✅ View Employee Details
+- ✅ Employee Dashboard
+
+---
+
+## 🏢 Department Management
+
+- ✅ Add Department
+- ✅ Edit Department
+- ✅ Delete Department
+- ✅ Department Statistics
+- ✅ Employee Count per Department
+
+---
+
+## 🔍 Advanced Features
+
+- ✅ Pagination
+- ✅ Searching
+- ✅ Sorting
+- ✅ Filtering
+- ✅ Dashboard Analytics
+- ✅ Responsive UI
+- ✅ Bootstrap Cards
+- ✅ Animated Statistics
+- ✅ Progress Bars
+- ✅ Modern Navigation
+- ✅ Mobile Friendly Design
+
+---
+
+# 📊 Dashboard
+
+The dashboard displays:
+
+- Total Employees
+- Total Departments
+- Total Payroll
+- Average Salary
+- Highest Salary
+- Lowest Salary
+- Largest Department
+- Recent Employees
+- Top Earners
+- Department-wise Statistics
+
+---
+
+# 🛠 Tech Stack
+
+| Technology | Used |
+|------------|------|
+| Python | ✅ |
+| Flask | ✅ |
+| SQLAlchemy ORM | ✅ |
+| MySQL | ✅ |
+| HTML5 | ✅ |
+| CSS3 | ✅ |
+| Bootstrap 5 | ✅ |
+| Jinja2 | ✅ |
+
+---
+
+# 📂 Project Structure
 
 ```
-Flask-Development/
+Employee-Management-System/
 │
 ├── app/
 │   ├── models/
 │   ├── routes/
-│   ├── templates/
 │   ├── static/
-│   ├── forms/
-│   ├── utils/
+│   │   ├── css/
+│   │   └── js/
+│   ├── templates/
 │   └── __init__.py
 │
-├── uploads/
+├── migrations/
+├── app.py
 ├── config.py
 ├── requirements.txt
-├── run.py
-└── README.md
+├── README.md
+└── .gitignore
 ```
 
 ---
 
-# 🛠 Prerequisites
+# ⚙️ Installation
 
-- Python 3.11+
-- Git
-- VS Code (Recommended)
-
-Check your Python version
+## Clone Repository
 
 ```bash
-python --version
-```
+git clone https://github.com/adityaraj1001/Employee-Management-System.git
 
-or
-
-```bash
-python3 --version
+cd Employee-Management-System
 ```
 
 ---
 
-# 📥 Clone Repository
+## Create Virtual Environment
 
-```bash
-git clone https://github.com/Gagan47raj/Flask-Development.git
-```
-
-Move inside the project
-
-```bash
-cd Flask-Development
-```
-
----
-
-# 🐍 Create Virtual Environment
-
-## Windows
+Windows
 
 ```bash
 python -m venv venv
-```
 
-Activate
-
-### Command Prompt
-
-```cmd
 venv\Scripts\activate
 ```
 
-### PowerShell
-
-```powershell
-venv\Scripts\Activate.ps1
-```
-
----
-
-## Linux / macOS
+Linux/macOS
 
 ```bash
 python3 -m venv venv
-```
 
-Activate
-
-```bash
 source venv/bin/activate
 ```
 
 ---
 
-# 📦 Install Dependencies
-
-Upgrade pip
-
-```bash
-python -m pip install --upgrade pip
-```
-
-Install required packages
+## Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -117,12 +151,34 @@ pip install -r requirements.txt
 
 ---
 
-# ▶️ Run the Flask Application
+# 🗄 Configure MySQL
 
-Run the application
+Create a MySQL database:
+
+```sql
+CREATE DATABASE employee_db;
+```
+
+Update your **config.py**
+
+```python
+SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:YOUR_PASSWORD@localhost/employee_db"
+```
+
+---
+
+# 🔄 Run Database Migration
 
 ```bash
-python run.py
+flask db upgrade
+```
+
+---
+
+# ▶️ Run the Project
+
+```bash
+python app.py
 ```
 
 or
@@ -131,213 +187,112 @@ or
 flask run
 ```
 
-Application will start on
+Visit
 
 ```
-http://127.0.0.1:5000
-```
-
----
-
-# 🔄 Deactivate Virtual Environment
-
-```bash
-deactivate
+http://127.0.0.1:5000/home
 ```
 
 ---
 
-# 📌 Install New Package
+# 📸 Project Modules
 
-```bash
-pip install package_name
-```
+### 🏠 Dashboard
 
-Update requirements
+- Analytics Cards
+- Charts
+- Salary Statistics
 
-```bash
-pip freeze > requirements.txt
-```
+### 👨 Employees
 
----
-
-# 🗃 Database Setup
-
-If using Flask SQLAlchemy
-
-Initialize database
-
-```python
-from app.models import db
-
-db.create_all()
-```
-
-Or using Flask Shell
-
-```bash
-flask shell
-```
-
-```python
-from app.models import db
-db.create_all()
-```
-
----
-
-# 📂 Environment Variables (Optional)
-
-Create a `.env`
-
-```
-SECRET_KEY=your-secret-key
-FLASK_ENV=development
-FLASK_DEBUG=True
-```
-
-Install dotenv
-
-```bash
-pip install python-dotenv
-```
-
----
-
-# 📚 Topics will be Covered
-
-- Flask Introduction
-- Routing
-- URL Parameters
-- HTTP Methods
-- Templates (Jinja2)
-- Template Inheritance
-- Static Files
-- Forms
-- WTForms
-- Flash Messages
-- Sessions
-- Cookies
-- Blueprints
-- SQLAlchemy ORM
-- CRUD Operations
-- Authentication
-- File Upload
-- Configuration
-- Error Handling
+- Employee List
+- Search Employees
+- Filter Employees
+- Sort Employees
 - Pagination
-- Flask CLI
-- REST API Basics
+
+### 🏢 Departments
+
+- Department Statistics
+- CRUD Operations
+- Employee Distribution
 
 ---
 
-# 💻 Common Commands
+# 📈 Implemented Assignment Features
 
-Create virtual environment
+| Requirement | Status |
+|------------|--------|
+| Employee CRUD | ✅ |
+| Department CRUD | ✅ |
+| Pagination | ✅ |
+| Searching | ✅ |
+| Sorting | ✅ |
+| Filtering | ✅ |
+| Responsive UI | ✅ |
+| Dashboard | ✅ |
+| SQLAlchemy ORM | ✅ |
+| MySQL Integration | ✅ |
 
-```bash
-python -m venv venv
-```
+---
 
-Activate
+# 💻 Useful Commands
 
-Windows
-
-```cmd
-venv\Scripts\activate
-```
-
-Linux/macOS
-
-```bash
-source venv/bin/activate
-```
-
-Install requirements
+Install packages
 
 ```bash
 pip install -r requirements.txt
+```
+
+Freeze requirements
+
+```bash
+pip freeze > requirements.txt
 ```
 
 Run application
 
 ```bash
-python run.py
+python app.py
 ```
 
-Deactivate
+Run migrations
 
 ```bash
-deactivate
+flask db upgrade
 ```
 
 ---
 
-# 📦 Generate requirements.txt
+# 🚀 Future Improvements
 
-```bash
-pip freeze > requirements.txt
-```
-
-Install from requirements
-
-```bash
-pip install -r requirements.txt
-```
-
----
-
-# 🔍 Verify Installation
-
-```bash
-python
-```
-
-```python
-import flask
-print(flask.__version__)
-```
+- Authentication & Login
+- Employee Profile Images
+- Excel Export
+- PDF Reports
+- Email Notifications
+- REST API
+- Role Based Access Control
+- Dark Mode
 
 ---
 
-# 🤝 Contributing
+# 👨‍💻 Developer
 
-Contributions are welcome!
+**Aditya Raj**
 
-1. Fork the repository
-2. Create a new branch
+**GitHub**
 
-```bash
-git checkout -b feature-name
-```
-
-3. Commit changes
-
-```bash
-git commit -m "Added new feature"
-```
-
-4. Push changes
-
-```bash
-git push origin feature-name
-```
-
-5. Create a Pull Request
+https://github.com/adityaraj1001
 
 ---
 
-# ⭐ Support
+# ⭐ Repository
 
-If this repository helped you learn Flask, consider giving it a ⭐ on GitHub.
+If you like this project, consider giving it a ⭐ on GitHub.
 
 ---
 
-# 👨‍💻 Author
+## 📄 License
 
-**Gagan Rajput**
-
-GitHub:
-https://github.com/Gagan47raj
-
-Happy Coding! 🚀
+This project is developed for educational purposes as part of a Flask Development coursework.
